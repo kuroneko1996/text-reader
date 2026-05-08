@@ -1,0 +1,17 @@
+aiohappyeyeballs==2.6.1
+aiohttp==3.13.5
+aiosignal==1.4.0
+attrs==26.1.0
+certifi==2026.4.22
+cffi==2.0.0
+edge-tts==7.2.8
+frozenlist==1.8.0
+idna==3.13
+just_playback==0.1.8
+multidict==6.7.1
+propcache==0.4.1
+pycparser==3.0
+tabulate==0.10.0
+tinytag==2.2.1
+typing_extensions==4.15.0
+yarl==1.23.0
