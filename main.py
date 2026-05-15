@@ -1,11 +1,15 @@
 import os
 import tkinter as tk
+import threading
 import audio_gen
 
 from tkinter import scrolledtext
 from just_playback import Playback
 from cleaner import remove_mp3_files_from_tmp
 
+app_state = {
+  "fetching_tts" : False
+}
 
 class TextPlayerApp:
   def __init__(self, root):
@@ -91,26 +95,58 @@ class TextPlayerApp:
 
     # ------------------ Placeholder actions ------------------
   def play(self):
-    
     if self.player.paused:
       self.player.resume()
       return
 
+    if app_state["fetching_tts"]:
+      print("Already fetching data")
+      return
+
     text = self.text_area.get("1.0", tk.END).strip()
     if text:
-      self.status.config(text=f"Playing (volume={self.volume.get():.2f})")
       print(f"PLAY: {text[:50]}…")
-
       if self.prev_text != text or self.filename == "" or self.prev_voice != self.selected_voice.get():
-        self.filename = audio_gen.gen(text, self.selected_voice.get())
-      
-      self.prev_text = text
-      self.prev_voice = self.selected_voice.get()
-      self.player.load_file(self.filename)
-      self.player.play()
-      self.player.set_volume(self.volume.get())
+        self.start_generation(text)
+      else:
+        self._on_generation_complete(text, self.filename, None)
     else:
       self.status.config(text="No text to read")
+
+  def start_generation(self, text):
+    self.btn_play.config(state="disabled")
+    self.status.config(text="Generating audio")
+    app_state["fetching_tts"] = True
+    thread = threading.Thread(
+      target=self._generate_audio_thread,
+      args=(text, self.selected_voice.get()),
+      daemon=True
+    )
+    thread.start()
+
+  def _generate_audio_thread(self, text, voice):
+    """Runs in background with the passed arguments"""
+    try:
+      result = audio_gen.gen(text, voice)
+      self.root.after(0, self._on_generation_complete, text, result, None)
+    except Exception as e:
+      self.root.after(0, self._on_generation_complete, None, e)
+
+
+  def _on_generation_complete(self, text, result, error):
+    self.btn_play.config(state='normal')
+    if error:
+        self.status.config(text=f"Error: {error}")
+    else:
+        self.filename = result
+        self.status.config(text=f"Playing (volume={self.volume.get():.2f})")
+        self.prev_text = text
+        self.prev_voice = self.selected_voice.get()
+        self.player.load_file(self.filename)
+        self.player.play()
+        self.player.set_volume(self.volume.get())
+
+    app_state["fetching_tts"] = False
 
   def pause(self):
     """Pause the current reading. Replace with TTS pause logic."""
