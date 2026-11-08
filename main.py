@@ -201,7 +201,7 @@ class TextPlayerApp:
             self.player.play()
             self.player.set_volume(self.volume.get())
 
-        self.app_state = AppStates.FETCHING_TTS
+        self.app_state = AppStates.IDLE
 
     def pause(self) -> None:
         """Pause the current reading. Replace with TTS pause logic."""

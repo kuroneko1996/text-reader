@@ -1,0 +1,23 @@
+[project]
+name = "text-reader"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "kuroneko1996", email = "20803349+kuroneko1996@users.noreply.github.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "edge-tts>=7.3.1",
+    "just-playback>=1.0.0",
+    "mypy>=2.4.1",
+    "requests>=2.34.2",
+    "types-requests>=2.33.0.20261030",
+]
+
+[project.scripts]
+text-reader = "text_reader:main"
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"
