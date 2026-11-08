@@ -1,13 +1,12 @@
 import edge_tts
-from datetime import datetime
 
-VOICE = "en-GB-SoniaNeural"
+from utils import get_temp_file_name
 
-def gen(text: str, voice: str) -> None:
-  print("Generating file...")
-  communicate = edge_tts.Communicate(text, voice)
-  
-  timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-  filename = f"tmp/file_{timestamp}.mp3"
-  communicate.save_sync(filename)
-  return filename
+
+def gen(text: str, voice: str) -> str:
+    print("Generating file...")
+    communicate = edge_tts.Communicate(text, voice)
+
+    filename = get_temp_file_name()
+    communicate.save_sync(filename)
+    return filename
