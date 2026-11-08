@@ -1,7 +1,6 @@
 import os
 import threading
 import tkinter as tk
-from datetime import datetime
 from enum import Enum
 from tkinter import scrolledtext
 
@@ -10,6 +9,7 @@ from just_playback import Playback
 
 import audio_gen
 from cleaner import remove_audio_files_from_tmp
+from config import *
 from utils import get_temp_file_name
 
 
@@ -18,32 +18,16 @@ class AppStates(Enum):
     FETCHING_TTS = 1
 
 
-class AppSource(Enum):
-    Local = 0
-    EdgeTTS = 1
-
-
-CURRENT_SOURCE = AppSource.Local
-LOCAL_TTS_URL = "http://localhost:8000/tts"
-
-
 class TextPlayerApp:
-    def __init__(self, root: tk.Tk) -> None:
+    def __init__(self, root: tk.Tk, voice_list: tuple[list[str], list[str]], current_source: AppSource) -> None:
         self.root = root
         self.root.title("Text Reader")
         self.root.geometry("640x540")
 
-        self.voice_list: list[list[str]] = [[]] * len(AppSource)
-        self.voice_list[AppSource.Local.value] = ["alba"]
-        self.voice_list[AppSource.EdgeTTS.value] = [
-            "en-GB-SoniaNeural",
-            "en-US-ChristopherNeural",
-            "en-AU-NatashaNeural",
-            "ru-RU-DmitryNeural",
-            "ru-RU-SvetlanaNeural",
-        ]
+        self.voice_list = voice_list
+        self.current_source = current_source
         self.selected_voice = tk.StringVar(
-            value=self.voice_list[CURRENT_SOURCE.value][0]
+            value=self.voice_list[current_source.value][0]
         )
         # Volume state (0.0 to 1.0)
         self.volume = tk.DoubleVar(value=0.5)
@@ -127,7 +111,7 @@ class TextPlayerApp:
         self.voice_menu = tk.OptionMenu(
             control_frame,
             self.selected_voice,
-            *self.voice_list[CURRENT_SOURCE.value],
+            *self.voice_list[self.current_source.value],
             command=self.on_voice_change,
         )
         self.voice_menu.config(width=10)
@@ -177,7 +161,7 @@ class TextPlayerApp:
 
     def _generate_audio_thread(self, text: str, voice: str) -> None:
         """Runs in background with the passed arguments"""
-        if CURRENT_SOURCE == AppSource.Local:
+        if self.current_source == AppSource.Local:
             form_data = {"text": (None, text)}
             form_data["voice_url"] = (None, voice)
             try:
@@ -251,5 +235,5 @@ if __name__ == "__main__":
     os.makedirs("tmp", exist_ok=True)
 
     root = tk.Tk()
-    app = TextPlayerApp(root)
+    app = TextPlayerApp(root, VOICES, CURRENT_SOURCE)
     root.mainloop()
