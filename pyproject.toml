@@ -21,3 +21,6 @@ text-reader = "text_reader:main"
 [build-system]
 requires = ["uv_build>=0.13.5,<0.14.0"]
 build-backend = "uv_build"
+
+[tool.uv]
+package = false

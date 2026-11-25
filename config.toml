@@ -1,0 +1,10 @@
+voices.local = ["alba", "anna", "bill_boerst"]
+voices.edgetts = [
+    "en-GB-SoniaNeural",
+    "en-US-ChristopherNeural",
+    "en-AU-NatashaNeural",
+    "ru-RU-DmitryNeural",
+    "ru-RU-SvetlanaNeural",
+]
+current_source = "local" # or edgetts
+tts_url = "http://localhost:8000/tts"

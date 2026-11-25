@@ -1204,7 +1204,7 @@ wheels = [
 [[package]]
 name = "text-reader"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "edge-tts" },
     { name = "just-playback" },

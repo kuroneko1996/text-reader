@@ -1,6 +1,8 @@
 import os
 import threading
 import tkinter as tk
+import tomllib
+import typing
 from enum import Enum
 from tkinter import scrolledtext
 
@@ -19,16 +21,21 @@ class AppStates(Enum):
 
 
 class TextPlayerApp:
-    def __init__(self, root: tk.Tk, voice_list: tuple[list[str], list[str]], current_source: AppSource) -> None:
+    def __init__(
+        self,
+        root: tk.Tk,
+        voice_list: dict[str, list[str]],
+        current_source: typing.Literal["local", "edgetts"],
+        tts_url: str,
+    ) -> None:
         self.root = root
         self.root.title("Text Reader")
         self.root.geometry("640x540")
 
         self.voice_list = voice_list
         self.current_source = current_source
-        self.selected_voice = tk.StringVar(
-            value=self.voice_list[current_source.value][0]
-        )
+        self.selected_voice = tk.StringVar(value=self.voice_list[current_source][0])
+        self.tts_url = tts_url
         # Volume state (0.0 to 1.0)
         self.volume = tk.DoubleVar(value=0.5)
 
@@ -111,7 +118,7 @@ class TextPlayerApp:
         self.voice_menu = tk.OptionMenu(
             control_frame,
             self.selected_voice,
-            *self.voice_list[self.current_source.value],
+            *self.voice_list[self.current_source],
             command=self.on_voice_change,
         )
         self.voice_menu.config(width=10)
@@ -161,11 +168,11 @@ class TextPlayerApp:
 
     def _generate_audio_thread(self, text: str, voice: str) -> None:
         """Runs in background with the passed arguments"""
-        if self.current_source == AppSource.Local:
+        if self.current_source == "local":
             form_data = {"text": (None, text)}
             form_data["voice_url"] = (None, voice)
             try:
-                response = requests.post(LOCAL_TTS_URL, files=form_data, timeout=45)
+                response = requests.post(self.tts_url, files=form_data, timeout=45)
                 if response.status_code == 200:
                     content_type = response.headers.get("Content-Type", "")
                     if "audio" in content_type or "octet-stream" in content_type:
@@ -229,11 +236,24 @@ class TextPlayerApp:
         print(f"Voice changed to {choice}")
 
 
+def load_config() -> Config:
+    with open("config.toml", "rb") as f:
+        data = tomllib.load(f)
+        config = Config(
+            current_source=data["current_source"],
+            voices=data["voices"],
+            tts_url=data["tts_url"],
+        )
+        return config
+
+
 # ------------------ Main ------------------
 if __name__ == "__main__":
     remove_audio_files_from_tmp()
     os.makedirs("tmp", exist_ok=True)
 
+    config = load_config()
+
     root = tk.Tk()
-    app = TextPlayerApp(root, VOICES, CURRENT_SOURCE)
+    app = TextPlayerApp(root, config.voices, config.current_source, config.tts_url)
     root.mainloop()
